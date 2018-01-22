@@ -1,0 +1,3 @@
+rootProject.name = 'zhihu_daily'
+
+include ':app'
