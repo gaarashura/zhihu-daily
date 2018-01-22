@@ -10,6 +10,9 @@ const styles = StyleSheet.create({
         height:400,
         flex:1,
         position:'relative'
+    },
+    text_center:{
+        textAlign:'center'
     }
 })
 export default styles;

@@ -28,8 +28,8 @@ export default class SideBar extends Component {
         }));
     }
 
-    navigateList = (id) => {
-        this.props.navigation.navigate('Home', {id})
+    navigateList = ({id,name}) => {
+        this.props.navigation.navigate('Home', {id,title:name})
     }
 
     render() {
@@ -42,7 +42,7 @@ export default class SideBar extends Component {
                         {this.state.routes.map(route => {
                             return (
                                 <TouchableNativeFeedback key={route.id} onPress={() => {
-                                    this.navigateList(route.id);
+                                    this.navigateList(route);
                                 }}>
                                     <ListItem>
                                         {route.isHome ? (<Left>

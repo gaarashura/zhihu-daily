@@ -3,8 +3,22 @@
  */
 import React, {Component} from 'react';
 import {View, Text, Dimensions, Image, StyleSheet, TouchableNativeFeedback} from 'react-native';
-import {Left, Body, Right, Button, Icon, Title, CardItem, Card, List, ListItem, Thumbnail, Content} from 'native-base';
-
+import {
+    Left,
+    Body,
+    Right,
+    Button,
+    Icon,
+    Title,
+    CardItem,
+    Card,
+    List,
+    ListItem,
+    Thumbnail,
+    Content,
+    Spinner
+} from 'native-base';
+import moment from 'moment';
 import Header from '../components/header';
 import ImageBlock from '../components/imageBlock';
 import {Col, Row, Grid} from 'react-native-easy-grid';
@@ -19,52 +33,93 @@ export default class Home extends Component {
         size: {width, height: 240},
         topStories: [],
         stories: [],
-        background:{
-
-        }
+        themeId: -99,
+        lastDay: moment(),
+        loadingMore:true,
+        background: {},
+        title:'首页'
     }
 
     constructor(props) {
         super(props);
+    }
+
+    componentDidMount() {
         this.getLatest();
     }
 
     componentWillReceiveProps(nextProps) {
-        const {id} = nextProps.navigation.state.params
-        this.getThemeDetail(id);
-        console.log(id);
+        const {id,title} = nextProps.navigation.state.params;
+        console.log(title);
+        this.setState({
+            title,
+            lastDay: moment(),
+            loadingMore:true,
+            topStories: [],
+            stories: [],
+        },()=>{
+            this.getThemeDetail(id);
+        });
+
     }
 
     async getLatest() {
         const data = await util.ajax({
-            url: 'news/latest'
+            url:'news/latest'
         });
         const {stories, top_stories: topStories} = data;
-        this.setState({
-            stories,
-            topStories
-        })
+        this.setState((prevState, props) => ({
+            title:'首页',
+            stories: prevState.stories.concat(stories),
+            topStories,
+            loadingMore:false
+        }));
+    }
+
+    loadBefore = async () => {//加载历史记录
+        const lastDay = moment(this.state.lastDay).subtract(1, 'day');
+        const dateStr = lastDay.format('YYYYMMDD');
+        this.setState((prevState, props) => ({
+            stories: prevState.stories.concat([{
+                id: dateStr,
+                dateStr: dateStr
+            }]),
+            lastDay,
+            loadingMore:true
+        }),async ()=>{
+            const data = await util.ajax({
+                url: `news/before/${dateStr}`
+            });
+            const {stories} = data;
+            this.setState((prevState, props) => ({
+                stories: prevState.stories.concat(stories),
+                loadingMore:false
+            }));
+        });
+
     }
 
     async getThemeDetail(id) {
-        if(!id)return;
-        if (id == -99) {
+        if (!id) return;
+        this.setState({
+            themeId: id
+        });
+        if (id == -99) {//加载首页内容
             return this.getLatest();
-        } else {
+        } else {//加载各分类内容
             const res = await util.ajax({
                 url: `theme/${id}`
             })
             const {stories} = res;
             this.setState({
                 stories,
-                topStories:'',
-                background:{
-                    image:res.background,
-                    desc:res.description
-                }
+                topStories: '',
+                background: {
+                    image: res.background,
+                    desc: res.description
+                },
+                loadingMore:false
             });
-            console.log(this.stories);
-
         }
     }
 
@@ -74,8 +129,9 @@ export default class Home extends Component {
     }
 
     render() {
-        const {topStories, stories} = this.state;
+        const {topStories, stories,loadingMore,lastDay,themeId,title} = this.state;
         const {navigation} = this.props;
+        console.log(stories);
         return (
             <View style={{flex: 1,}}>
                 <Header left={(
@@ -104,7 +160,7 @@ export default class Home extends Component {
                                 </Col>
                             </Grid>
                         )}
-                        title='首页'
+                        title={title}
 
                 />
                 <Content style={[styles.list]}>
@@ -132,7 +188,11 @@ export default class Home extends Component {
                     </View>
                     <List style={[commonStyle.reset, styles.list]}>
                         {stories.map(item => {
-                            return (
+                            return item.dateStr ? (//显示日期
+                                <View key={item.id}>
+                                    <Text>{moment(item.dateStr).format('MM月DD日')}</Text>
+                                </View>
+                            ) : (//显示内容
                                 <TouchableNativeFeedback key={item.id} onPress={() => {
                                     console.log(321);
                                     this.goDetail(item.id);
@@ -141,12 +201,31 @@ export default class Home extends Component {
                                         <Body style={[styles.acticle_title_wrap]}>
                                         <Text numberOfLines={3} style={[styles.acticle_title]} note>{item.title}</Text>
                                         </Body>
-                                        {item.images&&(<Thumbnail square size={80} source={{uri: item.images[0]}}/>)}
+                                        {item.images && (<Thumbnail square size={80} source={{uri: item.images[0]}}/>)}
 
                                     </ListItem>
                                 </TouchableNativeFeedback>
                             )
                         })}
+                        {themeId==-99&&(
+                            <ListItem itemDivider>
+                                <Grid style={{height: 50, alignItems: 'center'}}>
+                                    <Col/>
+                                    <Col>
+                                        <TouchableNativeFeedback onPress={this.loadBefore}>
+                                            <Text style={[commonStyle.text_center]}>{loadingMore?'加载中':'点击加载更多'}</Text>
+                                        </TouchableNativeFeedback>
+
+                                    </Col>
+                                    {loadingMore&&(
+                                        <Col>
+                                            {<Spinner color='blue'/>}
+                                        </Col>
+                                    )}
+                                    <Col/>
+                                </Grid>
+                            </ListItem>
+                        )}
                     </List>
                 </Content>
             </View>
