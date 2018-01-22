@@ -18,15 +18,24 @@ export default class Home extends Component {
     state = {
         size: {width, height: 240},
         topStories: [],
-        stories: []
+        stories: [],
+        background:{
+
+        }
     }
 
     constructor(props) {
         super(props);
-        this.getData();
+        this.getLatest();
     }
 
-    async getData() {
+    componentWillReceiveProps(nextProps) {
+        const {id} = nextProps.navigation.state.params
+        this.getThemeDetail(id);
+        console.log(id);
+    }
+
+    async getLatest() {
         const data = await util.ajax({
             url: 'news/latest'
         });
@@ -37,14 +46,36 @@ export default class Home extends Component {
         })
     }
 
+    async getThemeDetail(id) {
+        if(!id)return;
+        if (id == -99) {
+            return this.getLatest();
+        } else {
+            const res = await util.ajax({
+                url: `theme/${id}`
+            })
+            const {stories} = res;
+            this.setState({
+                stories,
+                topStories:'',
+                background:{
+                    image:res.background,
+                    desc:res.description
+                }
+            });
+            console.log(this.stories);
+
+        }
+    }
+
     goDetail = (id) => {
         const {navigation} = this.props;
-        navigation.navigate('articleDetail',{id})
+        navigation.navigate('articleDetail', {id})
     }
 
     render() {
-        const {navigation} = this.props;
         const {topStories, stories} = this.state;
+        const {navigation} = this.props;
         return (
             <View style={{flex: 1,}}>
                 <Header left={(
@@ -79,16 +110,18 @@ export default class Home extends Component {
                 <Content style={[styles.list]}>
 
                     <View style={styles.wrapper}>
-                        {!topStories.length ? null : (
+                        {!topStories.length ? (
+                            <ImageBlock desc={this.state.background.desc} image={this.state.background.image}/>
+                        ) : (
                             <Swiper paginationStyle={{bottom: 5}}>
                                 {topStories.map(item => {
                                     return (
-                                        <TouchableNativeFeedback key={item.id} onPress={()=>{
+                                        <TouchableNativeFeedback key={item.id} onPress={() => {
                                             console.log(321);
                                             this.goDetail(item.id);
                                         }}>
                                             <View>
-                                                <ImageBlock  desc={item.title} image={item.image} />
+                                                <ImageBlock desc={item.title} image={item.image}/>
                                             </View>
                                         </TouchableNativeFeedback>
 
@@ -100,7 +133,7 @@ export default class Home extends Component {
                     <List style={[commonStyle.reset, styles.list]}>
                         {stories.map(item => {
                             return (
-                                <TouchableNativeFeedback key={item.id} onPress={()=>{
+                                <TouchableNativeFeedback key={item.id} onPress={() => {
                                     console.log(321);
                                     this.goDetail(item.id);
                                 }}>
@@ -108,7 +141,8 @@ export default class Home extends Component {
                                         <Body style={[styles.acticle_title_wrap]}>
                                         <Text numberOfLines={3} style={[styles.acticle_title]} note>{item.title}</Text>
                                         </Body>
-                                        <Thumbnail square size={80} source={{uri: item.images[0]}}/>
+                                        {item.images&&(<Thumbnail square size={80} source={{uri: item.images[0]}}/>)}
+
                                     </ListItem>
                                 </TouchableNativeFeedback>
                             )

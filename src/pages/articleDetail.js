@@ -135,7 +135,7 @@ export default class detail extends Component {
                     injectedJavaScript={injectedJavaScript}
                     onMessage={(e) => {
                         const val=e.nativeEvent.data;
-                        if(val>240)return;
+                        if(val>240)return  this.startAnimation(-240);
                         this.startAnimation(-val)
                     }}
                     source={{
