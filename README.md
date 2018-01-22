@@ -1,2 +1,2 @@
 # zhihu-daily
-zhihu-daily react-native demo
+知乎日报react-native demo
