@@ -3,11 +3,12 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "android": "set process.env.NODE_ENV = development && set process.env.BABEL_ENV = development && react-native run-android",
+    "run-android": "set process.env.NODE_ENV = development && set process.env.BABEL_ENV = development && react-native run-android",
     "start": "node node_modules/react-native/local-cli/cli.js start",
     "test": "jest",
-    "build": "set process.env.NODE_ENV = production && set process.env.BABEL_ENV = production && cd android && gradlew assembleRelease",
-    "clean": "cd android && gradlew clean"
+    "build-android": "set process.env.NODE_ENV = production && set process.env.BABEL_ENV = production && cd android && gradlew assembleRelease",
+    "clean": "cd android && gradlew clean",
+    "devtools": "react-devtools"
   },
   "dependencies": {
     "axios": "^0.17.1",
@@ -17,17 +18,22 @@
     "react-native": "0.52.0",
     "react-native-easy-grid": "^0.1.16",
     "react-native-swiper": "^1.5.13",
-    "react-navigation": "^1.0.0-beta.27"
+    "react-navigation": "^1.0.0-beta.27",
+    "react-redux": "^5.0.6",
+    "redux": "^3.7.2"
   },
   "devDependencies": {
     "babel-jest": "22.1.0",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
     "babel-plugin-transform-remove-console": "^6.8.5",
     "babel-preset-react-native": "4.0.0",
+    "eslint": "^4.16.0",
+    "eslint-plugin-react": "^7.5.1",
     "jest": "22.1.2",
     "react-native-css": "^2.1.2",
     "react-test-renderer": "16.2.0",
-    "reactotron-react-native": "^1.14.0"
+    "reactotron-react-native": "^1.14.0",
+    "reactotron-redux": "^1.13.0"
   },
   "jest": {
     "preset": "react-native",

@@ -4,4 +4,4 @@ export default {
     navigationOptions:{
         header:null
     }
-}
+};

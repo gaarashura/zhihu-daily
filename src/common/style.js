@@ -1,4 +1,4 @@
-import {StyleSheet} from "react-native";
+import {StyleSheet} from 'react-native';
 const styles = StyleSheet.create({
     reset:{
         marginBottom:0,
@@ -7,12 +7,11 @@ const styles = StyleSheet.create({
         marginRight:0,
     },
     wrap:{
-        height:400,
         flex:1,
         position:'relative'
     },
     text_center:{
         textAlign:'center'
     }
-})
+});
 export default styles;

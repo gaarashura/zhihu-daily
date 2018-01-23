@@ -57,6 +57,11 @@ export default class detail extends Component {
             content: data
         });
     }
+    goComments=()=>{
+        const {navigation} = this.props;
+        const {params} = this.props.navigation.state;
+        navigation.navigate('comments', {id:params.id});
+    }
     startAnimation(val=0) {
         Animated.timing( // 以一个初始速度开始并且逐渐减慢停止。  S=vt-（at^2）/2   v=v - at
             this.state.translateY,
@@ -106,7 +111,7 @@ export default class detail extends Component {
                 </Col>
                 <Col>
                     <View>
-                        <Button transparent>
+                        <Button transparent  onPress={this.goComments}>
                             <Icon name='md-chatboxes'/>
                         </Button>
                     </View>
