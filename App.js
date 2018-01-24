@@ -5,14 +5,19 @@
  */
 
 import React, { Component } from 'react';
+import { View } from 'react-native';
 import getTheme from './native-base-theme/components';
 import material from './native-base-theme/variables/material';
 import { StyleProvider } from 'native-base';
 import { StackNavigator } from 'react-navigation';
 import config from './src/router/stackNavigatorConfig';
 import map from './src/router/routeMap';
-import { Provider } from 'react-redux'
-import store from "./src/store";
+import mobx from 'mobx';
+import { Provider } from 'mobx-react';
+import articleExtraStore from "./src/model/articleExtra";
+import uiStore from "./src/model/globalUi";
+import Loading from './src/components/loading';
+mobx.useStrict(true);
 const RootNavigator = StackNavigator(map, config);
 
 export default class App extends Component<{}> {
@@ -22,8 +27,12 @@ export default class App extends Component<{}> {
     render() {
         return (
             <StyleProvider style={getTheme(material)}>
-                <Provider store={store}>
-                    <RootNavigator ref={ref => this.rootRouter = ref}></RootNavigator>
+                <Provider articleExtraStore={articleExtraStore} uiStore={uiStore}>
+                    <View style={{flex:1}}>
+                        <Loading></Loading>
+                        <RootNavigator ref={ref => this.rootRouter = ref}>
+                        </RootNavigator>
+                    </View>
                 </Provider>
             </StyleProvider>
         );

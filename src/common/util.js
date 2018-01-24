@@ -6,7 +6,7 @@ axios.defaults.withCredentials = true;
  * 拦截返回结果
  */
 axios.interceptors.response.use(function (response) {
-    console.log(response.data);
+    console.log(response);
     return response.data;
 }, function (error) {
     return Promise.reject(error);

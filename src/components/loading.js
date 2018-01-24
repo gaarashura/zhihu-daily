@@ -1,23 +1,9 @@
 import React, { Component } from 'react';
 import { View, Text, TouchableHighlight, ProgressBar } from 'react-native';
 import { Spinner } from 'native-base';
-import { connect } from 'react-redux';
+import { inject, observer } from "mobx-react";
 import Modal from './modal';
-import { toggleLoading } from '../store/action';
-const mapStateToProps = state => {
-    return {
-        status: state.globalLoading
-    };
-};
-
-const mapDispatchToProps = dispatch => {
-    return {
-        toggleLoading: status => {
-            dispatch(toggleLoading(status));
-        }
-    };
-};
-
+@inject("uiStore") @observer
 class Loading extends Component {
 
     constructor(props) {
@@ -30,10 +16,11 @@ class Loading extends Component {
     }
 
     render() {
+        const {status,setStatus}=this.props.uiStore;
+
         return (
-            <Modal modalVisible={this.props.status} touchBg={() => {
-                console.log('touchBg');
-                this.props.toggleLoading(false);
+            <Modal modalVisible={status.loading} touchBg={() => {
+                setStatus('loading',false);
             }}>
                 <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
                     <View style={{ width: '70%', height: 100, backgroundColor: '#fff' }}>
@@ -45,9 +32,6 @@ class Loading extends Component {
     }
 }
 
-const LoadingWrap = connect(
-    mapStateToProps,
-    mapDispatchToProps
-)(Loading);
 
-export default LoadingWrap;
+
+export default Loading;

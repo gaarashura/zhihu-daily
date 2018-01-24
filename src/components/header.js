@@ -33,9 +33,8 @@ export default class HeaderExample extends Component {
 
                         <Right>
                             {right || (
-                                <Button transparent>
-                                    <Icon name='menu'/>
-                                </Button>)}
+                                <View transparent>
+                                </View>)}
                         </Right>
                     </Header>
                 </Container>

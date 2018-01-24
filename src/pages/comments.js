@@ -18,58 +18,78 @@ import {
 import moment from 'moment';
 import { connect } from 'react-redux';
 import { Col, Row, Grid } from 'react-native-easy-grid';
+import { observable, action } from "mobx";
+import { inject, observer } from "mobx-react";
 import Header from '../components/header';
 import util from '../common/util';
 import commonStyle from '../common/style';
-import { toggleLoading } from '../store/action';
-const mapStateToProps = state => {
-    return {
-        status: state.globalLoading
-    };
-};
-const mapDispatchToProps = dispatch => {
-    return {
-        toggleLoading: status => {
-            dispatch(toggleLoading(status));
-        }
-    };
-};
+
+@inject("articleExtraStore") @inject("uiStore") @observer
 class Comments extends Component {
     state = {
         comments: 0,
         longComments: [],
-        shortComments: []
+        shortComments: [],
+        contentStyle: {
+
+        }
     }
     constructor(props) {
         super(props);
     }
-    getExtra = async () => {
-        const { params } = this.props.navigation.state;
-        const data = await util.ajax({
-            url: `story-extra/${params.id}`
-        })
-        this.setState(data)
-    }
-    getComments = async (type = 'long') => {
-        if (type == 'short') {
-            this.props.toggleLoading(true);
-        };
-        const { params } = this.props.navigation.state;
-        const data = await util.ajax({
-            url: `story/${params.id}/${type}-comments`
-        });
-        this.setState({
-            [`${type}Comments`]: data.comments
-        })
-        this.props.toggleLoading(false);
+    //生命周期
+    componentDidUpdate(prevProps, prevState){
+        if(prevState.shortComments!=this.state.shortComments){
+            this.props.uiStore.setStatus('loading', false);
+                console.log('componentDidUpdate');
+                console.log(this.scrollView._root);
+                this.scrollView._root.scrollToEnd(0, this.state.contentStyle.height);
+        }
     }
     componentDidMount() {
-        this.getExtra();
         this.getComments();
     }
-    render() {
-        const { comments, long_comments, short_comments, longComments, shortComments } = this.state;
+    //生命周期
+    getComments = async (type = 'long') => {
+        if(this.state[`${type}Comments`].length==0){
+            if (type == 'short') {
+                this.props.uiStore.setStatus('loading', true);
+            };
+            const { params } = this.props.navigation.state;
+            const data = await util.ajax({
+                url: `story/${params.id}/${type}-comments`
+            });
+            this.setState({
+                [`${type}Comments`]: data.comments
+            });
+            
+        }else{
+            this.scrollView._root.scrollToPosition(0, this.state.contentStyle.height);
+        }
+       
 
+
+    }
+    
+    contentViewScroll = (e) => {
+        var offsetY = e.nativeEvent.contentOffset.y; //滑动距离
+        var contentSizeHeight = e.nativeEvent.contentSize.height; //scrollView contentSize高度
+        var oriageScrollHeight = e.nativeEvent.layoutMeasurement.height; //scrollView高度
+        if (offsetY + oriageScrollHeight >= contentSizeHeight) {
+            console.log('上传滑动到底部事件')
+        }
+    }
+    getContentStyle = (e) => {
+        this.setState({
+            contentStyle: {
+                height: e.nativeEvent.layout.height
+            }
+        })
+    }
+    render() {
+        const { longComments, shortComments } = this.state;
+        const { id } = this.props.navigation.state.params;
+        const { comments, long_comments, short_comments } = this.props.articleExtraStore.extras[id];
         const CommentItem = ({ avatar, author, content }) => {
             return (
                 <Grid>
@@ -86,42 +106,49 @@ class Comments extends Component {
         return (
             <View style={[commonStyle.wrap]}>
                 <Header title={`${comments}条评论`}></Header>
-                <Content style={[commonStyle.wrap, styles.content]} >
-                    <List>
-                        <ListItem>
-                            <Text>
-                                {`${long_comments}条长评`}
-                            </Text>
-                        </ListItem>
-                        {
-                            longComments.map(item => {
-                                return (
-                                    <ListItem avatar key={item.id}>
-                                        <CommentItem  {...item}></CommentItem>
-                                    </ListItem>
-                                )
-                            })
-                        }
-                        <ListItem>
-                            <TouchableNativeFeedback onPress={() => {
-                                this.getComments('short');
-                            }}>
+                <Content ref={ref => this.scrollView = ref} onMomentumScrollEnd={this.contentViewScroll} style={[commonStyle.wrap, styles.content]} >
+                    <View  onLayout={this.getContentStyle}>
+                        <List>
+                            <ListItem>
                                 <Text>
-                                    {`${short_comments}条短评`}
+                                    {`${long_comments}条长评`}
                                 </Text>
-                            </TouchableNativeFeedback>
+                            </ListItem>
+                            {
+                                longComments.map(item => {
+                                    return (
+                                        <ListItem avatar key={item.id}>
+                                            <CommentItem  {...item}></CommentItem>
+                                        </ListItem>
+                                    )
+                                })
+                            }
+                        </List>
+                    </View>
+                    <View>
+                        <List ref={ref=>this.list=ref}> 
+                            <ListItem>
+                                <TouchableNativeFeedback onPress={() => {
+                                    this.getComments('short');
+                                }}>
+                                    <Text>
+                                        {`${short_comments}条短评`}
+                                    </Text>
+                                </TouchableNativeFeedback>
 
-                        </ListItem>
-                        {
-                            shortComments.map(item => {
-                                return (
-                                    <ListItem avatar key={item.id}>
-                                        <CommentItem  {...item}></CommentItem>
-                                    </ListItem>
-                                )
-                            })
-                        }
-                    </List>
+                            </ListItem>
+                            {
+                                shortComments.map(item => {
+                                    return (
+                                        <ListItem avatar key={item.id}>
+                                            <CommentItem  {...item}></CommentItem>
+                                        </ListItem>
+                                    )
+                                })
+                            }
+                        </List>
+                    </View>
+
                 </Content>
             </View>
         );
@@ -152,8 +179,4 @@ const styles = StyleSheet.create({
     }
 });
 
-const CommentWrap = connect(
-    mapStateToProps,
-    mapDispatchToProps
-)(Comments);
-export default CommentWrap;
+export default Comments;

@@ -23,15 +23,14 @@ import { Col, Row, Grid } from 'react-native-easy-grid';
 import { withNavigation } from 'react-navigation';
 import Header from '../components/header';
 import ImageBlock from '../components/imageBlock';
-
+import { inject, observer } from "mobx-react";
 import Swiper from 'react-native-swiper';
 import util from '../common/util';
 import commonStyle from '../common/style';
-import Loading from "../components/loading";
 const { width, height } = Dimensions.get('window');
 
 
-
+@inject("articleExtraStore") @inject("uiStore") @observer
 export default class Home extends Component {
     state = {
         size: { width, height: 240 },
@@ -55,7 +54,6 @@ export default class Home extends Component {
 
     componentWillReceiveProps(nextProps) {
         const { id, title } = nextProps.navigation.state.params;
-        console.log(title);
         this.setState({
             title,
             lastDay: moment(),
@@ -162,10 +160,9 @@ export default class Home extends Component {
     render() {
         const { topStories, stories, loadingMore, lastDay, themeId, title } = this.state;
         const { navigation } = this.props;
-        console.log(stories);
+        const str=this.props.articleExtraStore.test.str;
         return (
             <View style={{ flex: 1, }}>
-                <Loading></Loading>
                 <Header left={(
                     <Button transparent onPress={() => {
                         navigation.navigate('DrawerOpen')
@@ -210,7 +207,6 @@ export default class Home extends Component {
                                     {topStories.map(item => {
                                         return (
                                             <TouchableNativeFeedback key={item.id} onPress={() => {
-                                                console.log(321);
                                                 this.goDetail(item.id);
                                             }}>
                                                 <View>
